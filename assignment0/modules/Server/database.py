@@ -10,6 +10,7 @@
 """Implementation of a simple database class."""
 
 import random
+import string
 
 class Database(object):
     """Class containing a database implementation."""
@@ -18,13 +19,22 @@ class Database(object):
         self.db_file = db_file
         self.rand = random.Random()
         self.rand.seed()
+        self.file = open(self.db_file, "a+")
+        self.file.seek(0)
+        
+        raw_db = self.file.read()
+        self.db = raw_db.split("%\n")
+
         #
         # Your code here.
         #
+
         pass
 
     def read(self):
         """Read a random location in the database."""
+        return self.db[self.rand.randint(0,len(self.db) - 1)]
+
         #
         # Your code here.
         #
@@ -32,6 +42,12 @@ class Database(object):
 
     def write(self, fortune):
         """Write a new fortune to the database."""
+
+        self.file.write(fortune)
+        self.file.write('\n%\n')
+
+        self.db.append(fortune)
+
         #
         # Your code here.
         #
