@@ -54,6 +54,9 @@ class DatabaseProxy(object):
 
     def __init__(self, server_address):
         self.address = server_address
+        self.s = socket.socket()
+        self.s.connect(server_address)
+
 
     # Public methods
 
@@ -61,6 +64,13 @@ class DatabaseProxy(object):
         #
         # Your code here.
         #
+        request = '{ "method": "read", "params": "false" }\n'
+        print request
+
+
+        self.s.send(request)
+        print self.s.recv(256)
+
         pass
 
     def write(self, fortune):

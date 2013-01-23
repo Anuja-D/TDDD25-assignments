@@ -107,6 +107,27 @@ class Request(threading.Thread):
         #
         # Your code here.
         #
+        
+        
+        print request
+        data = json.loads(request)
+
+        print data.get("method")
+        print data.get("params")
+
+        """
+        if data.method == "read":
+            if self.db_server.read():
+                return #json ratt
+            else:
+                return #json fel
+
+        if data.method == "write":
+            if self.db_server.write(data.params):
+                return #json ratt
+            else:
+                return #json fel
+        """
         pass
 
     def run(self):
