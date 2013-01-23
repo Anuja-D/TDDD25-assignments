@@ -25,13 +25,9 @@ class Database(object):
         raw_db = self.file.read()
         self.db = raw_db.split("%\n")
 
-        pass
-
     def read(self):
         """Read a random location in the database."""
         return self.db[self.rand.randint(0, len(self.db) - 1)]
-
-        pass
 
     def write(self, fortune):
         """Write a new fortune to the database."""
@@ -40,5 +36,3 @@ class Database(object):
         self.file.write('\n%\n')
 
         self.db.append(fortune)
-
-        pass
