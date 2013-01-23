@@ -61,17 +61,12 @@ class DatabaseProxy(object):
     # Public methods
 
     def read(self):
-        #
-        # Your code here.
-        #
         request = '{ "method": "read", "params": "false" }\n'
-        print request
-
-
         self.s.send(request)
-        print self.s.recv(256)
+        data = self.s.recv(256)
+        string = json.loads(data)
 
-        pass
+        return string.get("result")
 
     def write(self, fortune):
         #

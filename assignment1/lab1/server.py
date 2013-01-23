@@ -64,10 +64,10 @@ class Server(object):
     # Public methods
 
     def read(self):
-        #
-        # Your code here.
-        #
-        pass
+        self.rwlock.read_acquire()
+        string = self.db.read()
+        self.rwlock.read_release()
+        return string
 
     def write(self, fortune):
         #
@@ -103,32 +103,28 @@ class Request(threading.Thread):
                 -- in case of error:
                     { "error" : {   "name" : error_class_name,
                                     "args" : error_args         } }
-        """
-        #
-        # Your code here.
-        #
-        
-        
-        print request
+        """       
+
         data = json.loads(request)
-
-        print data.get("method")
-        print data.get("params")
-
-        """
-        if data.method == "read":
-            if self.db_server.read():
-                return #json ratt
+        
+        if data.get("method") == "read":
+            string = self.db_server.read()
+            respons = json.dumps({"result": string})
+            return ''.join([respons, '\n'])
+            """
+            if string = self.db_server.read():
+                print string
+                return '{ "result": "hej", "error": "false" }\n'
             else:
-                return #json fel
-
+                return '{ "result": "hej", "error": "false" }\n'
+            """
+        """
         if data.method == "write":
             if self.db_server.write(data.params):
                 return #json ratt
             else:
                 return #json fel
         """
-        pass
 
     def run(self):
         try:
