@@ -64,12 +64,14 @@ class DatabaseProxy(object):
         request = json.dumps({"method": "read", "params": ""})
         sock.send(request + '\n')
 
-        data = sock.recv(8000)
-        string = json.loads(data)
+        data = json.loads(sock.recv(8000))
         
         sock.close()
 
-        return string.get("result")
+        if data.get("error"):
+            return data.get("error")
+
+        return data.get("result")
 
     def write(self, fortune):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -78,9 +80,11 @@ class DatabaseProxy(object):
         request = json.dumps({"method": "write", "params": fortune})
         sock.send(request + '\n')
 
-        data = sock.recv(8000)
-        string = json.loads(data)
-        
+        data = json.loads(sock.recv(8000))
+
+        if data.get("error"):
+            print data.get("error")
+                
         sock.close()
 
 # ------------------------------------------------------------------------------

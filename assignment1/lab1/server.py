@@ -70,10 +70,9 @@ class Server(object):
         return string
 
     def write(self, fortune):
-        #
-        # Your code here.
-        #
-        pass
+        self.rwlock.write_acquire()
+        self.db.write(fortune)
+        self.rwlock.write_release()
 
 class Request(threading.Thread):
     """ Class for handling incoming requests.
@@ -115,11 +114,11 @@ class Request(threading.Thread):
 
             elif data.get("method") == "write":
                 fortune = data.get("params")
-                self.db_server.write()
+                self.db_server.write(fortune + '\n')
                 response = json.dumps({"result": "okey"})
                 return ''.join([response, '\n'])
         except:
-            response = json.dumps({"error": {"name": msg[0], "args": msg[1]}})
+            response = json.dumps({"error": {"name": sys.exc_info()[0], "args": sys.exc_info()[1]}})
             return ''.join([response, '\n'])
 
 
