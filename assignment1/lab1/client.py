@@ -54,25 +54,34 @@ class DatabaseProxy(object):
 
     def __init__(self, server_address):
         self.address = server_address
-        self.s = socket.socket()
-        self.s.connect(server_address)
-
 
     # Public methods
 
     def read(self):
-        request = '{ "method": "read", "params": "false" }\n'
-        self.s.send(request)
-        data = self.s.recv(256)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect(server_address)
+
+        request = json.dumps({"method": "read", "params": ""})
+        sock.send(request + '\n')
+
+        data = sock.recv(8000)
         string = json.loads(data)
+        
+        sock.close()
 
         return string.get("result")
 
     def write(self, fortune):
-        #
-        # Your code here.
-        #
-        pass
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect(server_address)
+
+        request = json.dumps({"method": "write", "params": fortune})
+        sock.send(request + '\n')
+
+        data = sock.recv(8000)
+        string = json.loads(data)
+        
+        sock.close()
 
 # ------------------------------------------------------------------------------
 # The main program

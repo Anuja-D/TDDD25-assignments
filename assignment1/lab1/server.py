@@ -103,32 +103,29 @@ class Request(threading.Thread):
                 -- in case of error:
                     { "error" : {   "name" : error_class_name,
                                     "args" : error_args         } }
-        """       
+        """  
 
-        data = json.loads(request)
-        
-        if data.get("method") == "read":
-            string = self.db_server.read()
-            respons = json.dumps({"result": string})
-            return ''.join([respons, '\n'])
-            """
-            if string = self.db_server.read():
-                print string
-                return '{ "result": "hej", "error": "false" }\n'
-            else:
-                return '{ "result": "hej", "error": "false" }\n'
-            """
-        """
-        if data.method == "write":
-            if self.db_server.write(data.params):
-                return #json ratt
-            else:
-                return #json fel
-        """
+        try:
+            data = json.loads(request)
+            
+            if data.get("method") == "read":
+                string = self.db_server.read()
+                response = json.dumps({"result": string})
+                return ''.join([response, '\n'])
+
+            elif data.get("method") == "write":
+                fortune = data.get("params")
+                self.db_server.write()
+                response = json.dumps({"result": "okey"})
+                return ''.join([response, '\n'])
+        except:
+            response = json.dumps({"error": {"name": msg[0], "args": msg[1]}})
+            return ''.join([response, '\n'])
+
 
     def run(self):
         try:
-            # Threat the socket as a file stream.
+            # Treat the socket as a file stream.
             worker = self.conn.makefile()
 
             # Read the request in a serialized form (JSON).
