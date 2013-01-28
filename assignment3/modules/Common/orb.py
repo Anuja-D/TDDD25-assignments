@@ -41,23 +41,6 @@ class Stub(object):
         self.address = tuple(address)
 
     def _rmi(self, method, *args):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect(self.address)
-
-        request = json.dumps({ "method": method, "params": args});
-
-        sock.send(request + "\n")
-
-        data = json.loads(sock.recv(8000))
-        
-        
-        sock.close()
-
-        if data.get("error"):
-            return data.get("error")
-
-        return data.get("result")
-        
         #
         # Your code here.
         #
