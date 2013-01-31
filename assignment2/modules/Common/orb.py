@@ -54,14 +54,9 @@ class Stub(object):
         sock.close()
 
         if data.get("error"):
-            return data.get("error")
+            raise eval(data.get("name")), data.get("args")
 
         return data.get("result")
-        
-        #
-        # Your code here.
-        #
-        pass
 
     def __getattr__(self, attr):
         """Forward call to name over the network at the given address."""
@@ -80,9 +75,6 @@ class Request(threading.Thread):
         self.daemon = True
 
     def run(self):
-        #
-        # Your code here.
-        #
         pass
 
 class Skeleton(threading.Thread):
@@ -97,15 +89,8 @@ class Skeleton(threading.Thread):
         self.address = address
         self.owner = owner
         self.daemon = True
-        #
-        # Your code here.
-        #
-        pass
-
+        
     def run(self):
-        #
-        # Your code here.
-        #
         pass
 
 class Peer:
