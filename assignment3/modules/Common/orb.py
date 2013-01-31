@@ -53,7 +53,7 @@ class Stub(object):
         sock.close()
 
         if data.get("error"):
-            return data.get("error")
+            raise eval(data.get("name")), data.get("args")
 
         return data.get("result")
 
