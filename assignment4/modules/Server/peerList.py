@@ -32,16 +32,10 @@ class PeerList(object):
         """
         self.lock.acquire()
         try:
-            tmpPeers = self.owner.name_service.require_all(self.owner.type);
-            print tmpPeers
-            for pid, paddr in tmpPeers:
-                if pid < self.owner.id:
-                    self.peers[pid] = orb.Stub(paddr)
-                    #self.register_peer(pid, paddr)
-
-                    #self.peers[pid].peers[self.owner.id] = orb.Stub(self.owner.address)
-                    self.peers[pid].register_peer(self.owner.id, self.owner.address)
-
+            #
+            # Your code here.
+            #
+            pass
         except Exception, e:
             raise e
         finally:
@@ -51,8 +45,10 @@ class PeerList(object):
         """Unregister this peer from all others in the list."""
         self.lock.acquire()
         try:
-            for pid in self.peers:
-                self.peers[pid].unregister_peer(self.owner.id)
+            #
+            # Your code here.
+            #
+            pass
         finally:
             self.lock.release()
 
