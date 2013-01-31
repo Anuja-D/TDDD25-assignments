@@ -86,7 +86,7 @@ class Request(threading.Thread):
             method = getattr(self.owner, data.get("method"))
             result = method(*data.get("params"));
 
-            result = json.dumps({"result":"success"});
+            result = json.dumps({"result":result});
 
             # Send the result.
             worker.write(result + '\n')
