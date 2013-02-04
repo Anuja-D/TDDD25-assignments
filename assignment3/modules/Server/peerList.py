@@ -33,7 +33,6 @@ class PeerList(object):
         self.lock.acquire()
         try:
             tmpPeers = self.owner.name_service.require_all(self.owner.type);
-            print tmpPeers
             for pid, paddr in tmpPeers:
                 self.peers[pid] = orb.Stub(paddr)
                 if pid < self.owner.id:
