@@ -55,15 +55,11 @@ class DistributedLock(object):
 
         finally:
             self.peer_list.lock.release()
-        return "hej"
-        
 
     def destroy(self):
         """ The object is being destroyed. If we have the token, we must
             give it to someone else.
         """
-        print "I'm dyyyyying"
-
         if self.state == TOKEN_HELD:
             self.state = TOKEN_PRESENT
             pids = self.peer_list.peers.keys()
@@ -80,21 +76,18 @@ class DistributedLock(object):
                 if pid != self.owner.id:
                     self.peer_list.peer(pid).obtain_token(self.token)
                     break
-        return "hej"
 
     def register_peer(self, pid):
         """Called when a new peer joins the system."""
         self.request[pid] = 0
         if self.state != NO_TOKEN:
             self.token[str(pid)] = 0
-        return "hej"
 
     def unregister_peer(self, pid):
         """Called when a peer leaves the system."""
         del self.request[pid]
         if self.state != NO_TOKEN:
             del self.token[str(pid)]
-        return "hej"
 
     def acquire(self):
         """Called when this object tries to acquire the lock."""
@@ -109,7 +102,6 @@ class DistributedLock(object):
             for pid in self.peer_list.peers:
                 if pid != self.owner.id:
                     self.peer_list.peer(pid).request_token(self.time, self.owner.id)
-        return "hej"
 
     def release(self):
         """Called when this object releases the lock."""
@@ -120,15 +112,11 @@ class DistributedLock(object):
             pids = self.peer_list.peers.keys()
             pids.sort()
             for pid in pids:
-                print "123"
                 if self.request[pid] > self.token[str(pid)]:
-                    print "asj"
-                    print pid
                     self.state = NO_TOKEN
                     self.token[str(self.owner.id)] = self.time
                     self.peer_list.peer(pid).obtain_token(self.token)
                     break
-        return "hej"
 
     def request_token(self, time, pid):
         """Called when some other object requests the token from us."""
@@ -139,7 +127,6 @@ class DistributedLock(object):
             self.state = NO_TOKEN
             self.token[str(self.owner.id)] = self.time
             self.peer_list.peer(pid).obtain_token(self.token)
-        return "hej"
 
     def obtain_token(self, token):
         """Called when some other object is giving us the token."""
@@ -150,8 +137,7 @@ class DistributedLock(object):
             self.state = TOKEN_HELD
         else:
             self.state = TOKEN_PRESENT
-        
-        return "hej" 
+         
 
     def display_status(self):
         self.peer_list.lock.acquire()
