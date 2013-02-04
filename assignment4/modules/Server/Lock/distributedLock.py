@@ -41,9 +41,19 @@ class DistributedLock(object):
 
             NOTE: peer_list must already be populated.
         """
-        #
-        # Your code here.
-        #
+
+        #print len(self.peer_list.get_peers())
+        self.peer_list.lock.acquire()
+        try:
+            if len(self.peer_list.get_peers()) == 1:
+                self.state = TOKEN_PRESENT
+            
+            for peer in self.peer_list.peers:
+                self.token[peer.id] = 0
+
+        finally:
+            self.peer_list.lock.release()
+
         pass
 
     def destroy(self):
