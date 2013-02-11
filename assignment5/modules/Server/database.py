@@ -31,5 +31,5 @@ class Database(object):
         """Write a new fortune to the database."""
 
         with open(self.db_file, "a") as f:
-            f.write(fortune + '\n%\n')
+            f.write('\n%\n' + fortune + '\n')
         self.db.append(fortune)

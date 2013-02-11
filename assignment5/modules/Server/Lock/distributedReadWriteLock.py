@@ -31,16 +31,12 @@ class DistributedReadWriteLock(ReadWriteLock):
         """ Override the write_acquire method to include obtaining access
             to the rest of the peers.
         """
-        #
-        # Your code here.
-        #
-        pass
+
+        self.distributed_lock.acquire()
 
     def write_release(self):
         """ Override the write_release method to include releasing access
             to the rest of the peers.
         """
-        #
-        # Your code here.
-        #
-        pass
+
+        self.distributed_lock.release()

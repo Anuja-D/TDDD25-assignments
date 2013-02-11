@@ -104,18 +104,30 @@ class Server(orb.Peer):
     # Public methods
 
     def read(self):
-        #
-        # Your code here.
-        #
-        pass
+        print "read"
+        self.drwlock.read_acquire()
+        string = self.db.read()
+        self.drwlock.read_release()
+        return string
 
     def write(self, fortune):
-        #
-        # Your code here.
-        #
-        pass
+        print "write"
+        self.drwlock.write_acquire()
+        self.db.write(fortune)
+
+        pids = self.peer_list.peers.keys()
+        pids.sort()
+        for pid in pids:
+            if pid != self.id:
+                self.peer_list.peer(pid).write_no_lock(fortune)
+
+        self.drwlock.write_release()
+        
+
+
 
     def write_no_lock(self, fortune):
+        print "write no lock"
         self.db.write(fortune)
 
     def register_peer(self, pid, paddr):
