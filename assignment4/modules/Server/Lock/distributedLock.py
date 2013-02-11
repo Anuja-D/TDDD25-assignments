@@ -112,7 +112,7 @@ class DistributedLock(object):
             pids = self.peer_list.peers.keys()
             pids.sort()
             for pid in pids:
-                if self.request[pid] > self.token[str(pid)]:
+                if self.request[pid] > self.token[str(pid)] and pid != self.owner.id:
                     self.state = NO_TOKEN
                     self.token[str(self.owner.id)] = self.time
                     self.peer_list.peer(pid).obtain_token(self.token)
