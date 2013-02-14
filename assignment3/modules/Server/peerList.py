@@ -34,9 +34,16 @@ class PeerList(object):
         try:
             tmpPeers = self.owner.name_service.require_all(self.owner.type);
             for pid, paddr in tmpPeers:
-                self.peers[pid] = orb.Stub(paddr)
+                if pid == self.owner.id:
+                    self.peers[pid] = orb.Stub(paddr)
                 if pid < self.owner.id:
-                    self.peers[pid].register_peer(self.owner.id, self.owner.address)
+                    self.peers[pid] = orb.Stub(paddr)
+                    try:
+                        self.peers[pid].register_peer(self.owner.id, self.owner.address)
+                    except Exception, e:
+                        del self.peers[pid]
+
+
 
         except Exception, e:
             raise e
@@ -49,7 +56,10 @@ class PeerList(object):
         try:
             for pid in self.peers:
                 if pid != self.owner.id:
-                    self.peers[pid].unregister_peer(self.owner.id)
+                    try:
+                        self.peers[pid].unregister_peer(self.owner.id)
+                    except:
+                        continue
         finally:
             self.lock.release()
 
