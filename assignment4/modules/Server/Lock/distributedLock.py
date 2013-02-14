@@ -28,6 +28,7 @@ class DistributedLock(object):
         self.token = None
         self.request = {}
         self.state = NO_TOKEN
+        self.wait = False
 
     # Public methods
 
@@ -44,9 +45,14 @@ class DistributedLock(object):
 
         self.peer_list.lock.acquire()
         try:
-            if len(self.peer_list.get_peers()) == 1:
-                self.state = TOKEN_PRESENT
-                self.token = {str(self.owner.id) : 0}
+            pids = self.peer_list.peers.keys()
+            pids.sort()
+            for pid in pids:
+                print pid
+                if pid >= self.owner.id:
+                    self.state = TOKEN_PRESENT
+                    self.token = {str(self.owner.id) : 0}
+                break
             
             pids = self.peer_list.peers.keys()
             pids.sort()
@@ -60,83 +66,138 @@ class DistributedLock(object):
         """ The object is being destroyed. If we have the token, we must
             give it to someone else.
         """
-        if self.state == TOKEN_HELD:
-            self.state = TOKEN_PRESENT
-            pids = self.peer_list.peers.keys()
-            pids.sort()
-            for pid in pids:
-                if self.request[pid] > self.token[str(pid)] and pid != self.owner.id:
-                    
-                    self.peer_list.peer(pid).obtain_token(self.token)
-                    break
+        self.peer_list.lock.acquire()
+        try:
+            if self.state == TOKEN_HELD:
+                self.state = TOKEN_PRESENT
+                pids = self.peer_list.peers.keys()
+                pids.sort()
+                for pid in pids:
+                    if self.request[pid] > self.token[str(pid)] and pid != self.owner.id:
+                        
+                        self.peer_list.peers[pid].obtain_token(self.token)
+                        break
 
-        if self.state == TOKEN_PRESENT:
-            pids = self.peer_list.peers.keys()
-            for pid in pids:
-                if pid != self.owner.id:
-                    self.peer_list.peer(pid).obtain_token(self.token)
-                    break
+            if self.state == TOKEN_PRESENT:
+                pids = self.peer_list.peers.keys()
+                for pid in pids:
+                    if pid != self.owner.id:
+                        self.peer_list.peers[pid].obtain_token(self.token)
+                        break
+
+        finally:
+            self.peer_list.lock.release()
 
     def register_peer(self, pid):
         """Called when a new peer joins the system."""
-        self.request[pid] = 0
-        if self.state != NO_TOKEN:
-            self.token[str(pid)] = 0
+        self.peer_list.lock.acquire()
+        try:
+
+            self.request[pid] = 0
+            if self.state != NO_TOKEN:
+                self.token[str(pid)] = 0
+
+        finally:
+            self.peer_list.lock.release()
 
     def unregister_peer(self, pid):
         """Called when a peer leaves the system."""
-        del self.request[pid]
-        if self.state != NO_TOKEN:
-            del self.token[str(pid)]
+        self.peer_list.lock.acquire()
+        try:
+
+            del self.request[pid]
+            if self.state != NO_TOKEN:
+                del self.token[str(pid)]
+
+        finally:
+            self.peer_list.lock.release()
 
     def acquire(self):
         """Called when this object tries to acquire the lock."""
         print "Trying to acquire the lock..."
-        
-        self.time += 1
-        self.request[self.owner.id] = self.time
-        if self.state == TOKEN_PRESENT:
-            self.state = TOKEN_HELD
+        self.peer_list.lock.acquire()
+        try:
 
-        if self.state == NO_TOKEN:
-            for pid in self.peer_list.peers:
-                if pid != self.owner.id:
-                    self.peer_list.peer(pid).request_token(self.time, self.owner.id)
+            self.time += 1
+            self.request[self.owner.id] = self.time
+            if self.state == TOKEN_PRESENT:
+                self.wait = False
+                self.state = TOKEN_HELD
+
+            if self.state == NO_TOKEN:
+                self.wait = True
+                pids = self.peer_list.peers.keys()
+                pids.sort()
+                for pid in pids:
+                    print pid
+                    if pid != self.owner.id:
+                        self.peer_list.peers[pid].request_token(self.time, self.owner.id)
+
+        finally:
+            print "slapper laset i acquire"
+            self.peer_list.lock.release()
+
+        while self.wait:
+            pass
+
 
     def release(self):
         """Called when this object releases the lock."""
         print "Releasing the lock..."
-        if self.state == TOKEN_HELD:
-            self.time += 1
-            self.state = TOKEN_PRESENT
-            pids = self.peer_list.peers.keys()
-            pids.sort()
-            for pid in pids:
-                if self.request[pid] > self.token[str(pid)] and pid != self.owner.id:
-                    self.state = NO_TOKEN
-                    self.token[str(self.owner.id)] = self.time
-                    self.peer_list.peer(pid).obtain_token(self.token)
-                    break
+
+        self.peer_list.lock.acquire()
+        try:
+
+            if self.state == TOKEN_HELD:
+                self.time += 1
+                self.state = TOKEN_PRESENT
+                pids = self.peer_list.peers.keys()
+                pids.sort()
+                for pid in pids:
+                    if self.request[pid] > self.token[str(pid)] and pid != self.owner.id:
+                        self.state = NO_TOKEN
+                        self.token[str(self.owner.id)] = self.time
+                        self.peer_list.peers[pid].obtain_token(self.token)
+                        break
+
+        finally:
+            self.peer_list.lock.release()
 
     def request_token(self, time, pid):
         """Called when some other object requests the token from us."""
         print "get a request token call"
-        self.time += 1
-        self.request[pid] = max(time, self.request[pid])        
-        if self.state == TOKEN_PRESENT and self.request[pid] > self.token[str(pid)]:
-            self.state = NO_TOKEN
-            self.token[str(self.owner.id)] = self.time
-            self.peer_list.peer(pid).obtain_token(self.token)
+
+        self.peer_list.lock.acquire()
+        try:
+
+            self.time += 1
+            self.request[pid] = max(time, self.request[pid])        
+            if self.state == TOKEN_PRESENT and self.request[pid] > self.token[str(pid)]:
+                self.state = NO_TOKEN
+                self.token[str(self.owner.id)] = self.time
+                self.peer_list.lock.release()
+                self.peer_list.peers[pid].obtain_token(self.token)
+
+        finally:
+            self.peer_list.lock.release()
 
     def obtain_token(self, token):
         """Called when some other object is giving us the token."""
         print "Receiving the token..."
-        self.token = token
+        self.peer_list.lock.acquire()
+        try:
+            print "efter laset"
 
-        if self.request[self.owner.id] > self.token[str(self.owner.id)]:
-            self.state = TOKEN_HELD
-        else:
-            self.state = TOKEN_PRESENT
+            self.token = token
+
+            if self.request[self.owner.id] > self.token[str(self.owner.id)]:
+                self.state = TOKEN_HELD
+            else:
+                self.state = TOKEN_PRESENT
+
+            self.wait = False
+        finally:
+            self.peer_list.lock.release()
          
 
     def display_status(self):
