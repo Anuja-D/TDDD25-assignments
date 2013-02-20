@@ -48,7 +48,6 @@ class DistributedLock(object):
             pids = self.peer_list.peers.keys()
             pids.sort()
             for pid in pids:
-                print pid
                 if pid >= self.owner.id:
                     self.state = TOKEN_PRESENT
                     self.token = {str(self.owner.id) : 0}
@@ -138,7 +137,6 @@ class DistributedLock(object):
                 pids = self.peer_list.peers.keys()
                 pids.sort()
                 for pid in pids:
-                    print pid
                     if pid != self.owner.id:
                         try:
                             self.peer_list.peers[pid].request_token(self.time, self.owner.id)
@@ -146,7 +144,6 @@ class DistributedLock(object):
                             del self.peer_list.peers[pid]
 
         finally:
-            print "slapper laset i acquire"
             self.peer_list.lock.release()
 
         while self.wait:
@@ -181,7 +178,7 @@ class DistributedLock(object):
 
     def request_token(self, time, pid):
         """Called when some other object requests the token from us."""
-        print "get a request token call"
+        print "Get a request token call..."
 
         self.peer_list.lock.acquire()
         try:
@@ -204,7 +201,6 @@ class DistributedLock(object):
     def obtain_token(self, token):
         """Called when some other object is giving us the token."""
         print "Receiving the token..."
-        print "efter laset"
 
         self.token = token
 

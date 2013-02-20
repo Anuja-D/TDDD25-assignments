@@ -94,6 +94,11 @@ class Request(threading.Thread):
         except Exception, e:
             # Catch all errors in order to prevent the object from crashing
             # due to bad connections coming from outside.
+
+            # send exception
+
+            worker.write(json.dumps({"error": {"name": e.__class__.__name__, "args": e.args } }))
+
             print "The connection to the caller has died:"
             print "\t{0}".format(e)
         finally:
