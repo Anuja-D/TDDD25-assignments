@@ -5,4 +5,4 @@
     object_StudentId) so as to avoid conflicts.
 """
 
-object_type = "object_guaas"
+object_type = "object_guaasasdas"

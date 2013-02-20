@@ -74,16 +74,25 @@ class DistributedLock(object):
                 pids.sort()
                 for pid in pids:
                     if self.request[pid] > self.token[str(pid)] and pid != self.owner.id:
-                        
-                        self.peer_list.peers[pid].obtain_token(self.token)
-                        break
+                        try:
+                            self.peer_list.peers[pid].obtain_token(self.token)
+                            break
+                        except Exception, e:
+                            self.state = TOKEN_PRESENT
+                            del self.peer_list.peers[pid]
+
 
             if self.state == TOKEN_PRESENT:
                 pids = self.peer_list.peers.keys()
                 for pid in pids:
                     if pid != self.owner.id:
-                        self.peer_list.peers[pid].obtain_token(self.token)
-                        break
+                        try:
+                            self.peer_list.peers[pid].obtain_token(self.token)
+                            break
+                        except Exception, e:
+                            self.state = TOKEN_PRESENT
+                            del self.peer_list.peers[pid]
+
 
         finally:
             self.peer_list.lock.release()
@@ -131,7 +140,10 @@ class DistributedLock(object):
                 for pid in pids:
                     print pid
                     if pid != self.owner.id:
-                        self.peer_list.peers[pid].request_token(self.time, self.owner.id)
+                        try:
+                            self.peer_list.peers[pid].request_token(self.time, self.owner.id)
+                        except Exception, e:
+                            del self.peer_list.peers[pid]
 
         finally:
             print "slapper laset i acquire"
@@ -157,8 +169,12 @@ class DistributedLock(object):
                     if self.request[pid] > self.token[str(pid)] and pid != self.owner.id:
                         self.state = NO_TOKEN
                         self.token[str(self.owner.id)] = self.time
-                        self.peer_list.peers[pid].obtain_token(self.token)
-                        break
+                        try:
+                            self.peer_list.peers[pid].obtain_token(self.token)
+                            break
+                        except Exception, e:
+                            self.state = TOKEN_PRESENT
+                            del self.peer_list.peers[pid]
 
         finally:
             self.peer_list.lock.release()
@@ -175,8 +191,12 @@ class DistributedLock(object):
             if self.state == TOKEN_PRESENT and self.request[pid] > self.token[str(pid)]:
                 self.state = NO_TOKEN
                 self.token[str(self.owner.id)] = self.time
-                self.peer_list.lock.release()
-                self.peer_list.peers[pid].obtain_token(self.token)
+                try:
+                    self.peer_list.peers[pid].obtain_token(self.token)
+                except Exception, e:
+                    self.state = TOKEN_PRESENT
+                    del self.peer_list.peers[pid]
+                    
 
         finally:
             self.peer_list.lock.release()
@@ -184,21 +204,16 @@ class DistributedLock(object):
     def obtain_token(self, token):
         """Called when some other object is giving us the token."""
         print "Receiving the token..."
-        self.peer_list.lock.acquire()
-        try:
-            print "efter laset"
+        print "efter laset"
 
-            self.token = token
+        self.token = token
 
-            if self.request[self.owner.id] > self.token[str(self.owner.id)]:
-                self.state = TOKEN_HELD
-            else:
-                self.state = TOKEN_PRESENT
+        if self.request[self.owner.id] > self.token[str(self.owner.id)]:
+            self.state = TOKEN_HELD
+        else:
+            self.state = TOKEN_PRESENT
 
-            self.wait = False
-        finally:
-            self.peer_list.lock.release()
-         
+        self.wait = False         
 
     def display_status(self):
         self.peer_list.lock.acquire()
