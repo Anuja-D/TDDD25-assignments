@@ -80,6 +80,7 @@ class Server(orb.Peer):
                 "release"           : self.distributed_lock.release,
                 "request_token"     : self.distributed_lock.request_token,
                 "obtain_token"      : self.distributed_lock.obtain_token,
+                "obtain_token_no_lock"      : self.distributed_lock.obtain_token_no_lock,
                 "display_status"    : self.distributed_lock.display_status
             }
         orb.Peer.start(self)
